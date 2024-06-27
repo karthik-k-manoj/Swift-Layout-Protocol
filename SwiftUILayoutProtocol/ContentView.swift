@@ -10,12 +10,17 @@ import SwiftUI
 struct ContentView: View {
     var body: some View {
         VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundColor(.accentColor)
-            Text("Hello, world!")
+            HStack(spacing: 5) {
+                contents()
+            }
         }
         .padding()
+    }
+    
+    @ViewBuilder func contents() -> some View {
+        Image(systemName: "globe.americas.fill")
+        Text("Hello World")
+        Image(systemName: "globe.europe.africa.fill")
     }
 }
 
