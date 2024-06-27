@@ -58,35 +58,53 @@ struct ContentView_Previews: PreviewProvider {
 }
 
 struct SimpleHStack: Layout {
-    let spacing: CGFloat
+    var spacing: CGFloat? = nil
     
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
         print("SimpleHStack Proposed Size", proposal)
         let idealViewSizes = subviews.map { $0.sizeThatFits(.unspecified) }
         
-        let spacing = spacing * CGFloat(subviews.count - 1)
-        let width = spacing + idealViewSizes.reduce(0) { $0 + $1.width }
-        let height = idealViewSizes.reduce(0) { max($0, $1.height) }
+        let spaces = computeSpacing(subviews)
+        let accumulatedSpaces = spaces.reduce(0) { $0 + $1 }
+        let accumulatedWidths = idealViewSizes.reduce(0) { $0 + $1.width }
+        let maxHeight = idealViewSizes.reduce(0) { max($0, $1.height) }
         
-        return CGSize(width: width, height: height)
-        
+        return CGSize(width: accumulatedSpaces + accumulatedWidths, height: maxHeight)
     }
     
     func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
         var pt = CGPoint(x: bounds.minX, y: bounds.minY)
+        let spaces = computeSpacing(subviews)
         
-        for v in subviews.sorted(by: { $0.preferredPosition > $1.preferredPosition }) {
-            v.place(at: pt, anchor: .topLeading, proposal: .unspecified)
-            pt.x += v.sizeThatFits(.unspecified).width + spacing
+        for idx in subviews.indices {
+            subviews[idx].place(at: pt, anchor: .topLeading, proposal: .unspecified)
+            
+            if idx < subviews.count - 1 {
+                pt.x += subviews[idx].sizeThatFits(.unspecified).width + spaces[idx]
+            }
         }
     }
     
     func explicitAlignment(of guide: HorizontalAlignment, in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGFloat? {
         if guide == .leading {
-            return subviews[0].sizeThatFits(proposal).width + spacing
+            return bounds.minY
         } else {
             return nil
         }
+    }
+    
+    private func computeSpacing(_ subviews: LayoutSubviews) -> [CGFloat] {
+        // if there is spacing applied then create an array of spacing
+        if let spacing  {
+            return Array<CGFloat>(repeating: spacing, count: subviews.count - 1)
+        } else {
+            return subviews.indices.map { idx in
+                guard idx < subviews.count - 1 else { return CGFloat(0) }
+                
+                return subviews[idx].spacing.distance(to: subviews[idx + 1].spacing, along: .horizontal)
+            }
+        }
+        // if not then we need to create an array of custom spacing by asking subviews
     }
 }
 
