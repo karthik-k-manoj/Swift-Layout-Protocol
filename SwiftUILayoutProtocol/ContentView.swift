@@ -19,15 +19,17 @@ struct ContentView: View {
                 Circle()
                     .fill(.yellow)
                     .frame(width: 30, height: 30)
+                    .preferredPosition(1)
                 
                 Circle()
                     .fill(.green)
                     .frame(width: 30, height: 30)
+                    .preferredPosition(2)
                 
                 Circle()
                     .fill(.blue)
                     .frame(width: 30, height: 30)
-                    .layoutPriority(1)
+                    .preferredPosition(1)
                 
             }
             .border(.red)
@@ -60,7 +62,7 @@ struct SimpleHStack: Layout {
     
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
         print("SimpleHStack Proposed Size", proposal)
-        let idealViewSizes = subviews.map { $0.sizeThatFits(.unspecified)}
+        let idealViewSizes = subviews.map { $0.sizeThatFits(.unspecified) }
         
         let spacing = spacing * CGFloat(subviews.count - 1)
         let width = spacing + idealViewSizes.reduce(0) { $0 + $1.width }
@@ -73,7 +75,7 @@ struct SimpleHStack: Layout {
     func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
         var pt = CGPoint(x: bounds.minX, y: bounds.minY)
         
-        for v in subviews.sorted(by: { $0.priority > $1.priority }) {
+        for v in subviews.sorted(by: { $0.preferredPosition > $1.preferredPosition }) {
             v.place(at: pt, anchor: .topLeading, proposal: .unspecified)
             pt.x += v.sizeThatFits(.unspecified).width + spacing
         }
@@ -86,4 +88,20 @@ struct SimpleHStack: Layout {
             return nil
         }
     }
+}
+
+extension View {
+    func preferredPosition(_ order: CGFloat) -> some View {
+        self.layoutValue(key: PreferredPosition.self, value: order)
+    }
+}
+
+extension LayoutSubview {
+    var preferredPosition: CGFloat {
+        self[PreferredPosition.self]
+    }
+}
+
+struct PreferredPosition: LayoutValueKey {
+    static var defaultValue: CGFloat = 0.0
 }
