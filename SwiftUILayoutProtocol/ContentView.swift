@@ -13,6 +13,7 @@ struct ContentView: View {
             HStack(spacing: 5) {
                 contents()
             }
+            .border(.blue)
         }
         .padding()
     }
