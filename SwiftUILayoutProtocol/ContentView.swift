@@ -16,7 +16,19 @@ struct ContentView: View {
             .border(.blue)
             
             SimpleHStack(spacing: 5) {
-                contents()
+                Circle()
+                    .fill(.yellow)
+                    .frame(width: 30, height: 30)
+                
+                Circle()
+                    .fill(.green)
+                    .frame(width: 30, height: 30)
+                
+                Circle()
+                    .fill(.blue)
+                    .frame(width: 30, height: 30)
+                    .layoutPriority(1)
+                
             }
             .border(.red)
             
@@ -47,6 +59,7 @@ struct SimpleHStack: Layout {
     let spacing: CGFloat
     
     func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        print("SimpleHStack Proposed Size", proposal)
         let idealViewSizes = subviews.map { $0.sizeThatFits(.unspecified)}
         
         let spacing = spacing * CGFloat(subviews.count - 1)
@@ -60,7 +73,7 @@ struct SimpleHStack: Layout {
     func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
         var pt = CGPoint(x: bounds.minX, y: bounds.minY)
         
-        for v in subviews {
+        for v in subviews.sorted(by: { $0.priority > $1.priority }) {
             v.place(at: pt, anchor: .topLeading, proposal: .unspecified)
             pt.x += v.sizeThatFits(.unspecified).width + spacing
         }
